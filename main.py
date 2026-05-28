@@ -174,7 +174,6 @@ def run_bot(bot, redis_db, strapi_api_token):
         markup.add(btn1)
         markup.add(btn2)
         markup.add(btn3)
-        bot.delete_message(call.message.chat.id, call.message.message_id)
         bot.send_photo(
             chat_id=call.message.chat.id,
             photo=image,
@@ -185,7 +184,6 @@ def run_bot(bot, redis_db, strapi_api_token):
     
     @bot.callback_query_handler(func=lambda call: call.data == "menu")
     def back_to_menu(call):
-        bot.delete_message(call.message.chat.id, call.message.message_id)
         start_menu(call.message)
 
     
@@ -217,7 +215,6 @@ def run_bot(bot, redis_db, strapi_api_token):
                     callback_data=f"rm-{fish.get("documentId")}"
                 )
                 markup.add(btn)
-        bot.delete_message(call.message.chat.id, call.message.message_id)
         if not cart_text:
             bot.send_message(call.message.chat.id, "Ваша корзина пуста", reply_markup=markup)
         else:
