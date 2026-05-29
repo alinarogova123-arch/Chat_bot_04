@@ -119,23 +119,32 @@ def get_fish(strapi_api_token, document_id=None):
     headers = {
         "Authorization": f"bearer {strapi_api_token}"
     }
+    params = {
+        "populate": {
+            "picture": "url"
+        }
+    }
     if document_id:
-        url = f"http://localhost:1337/api/fishs/{document_id}?populate[0]=picture"
+        url = f"http://localhost:1337/api/fishs/{document_id}"
+        response = requests.get(url, headers=headers, params=params)
     else:
         url = "http://localhost:1337/api/fishs"
-    response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers)
     response.raise_for_status()
     fish = response.json().get("data")
 
     return fish
 
 
-def chek_cart(strapi_api_token, tg_id):
+def chek_cart(strapi_api_token, user_id):
     headers = {
         "Authorization": f"bearer {strapi_api_token}"
     }
-    url = f"http://localhost:1337/api/carts?filters[tg_id][$eq]={tg_id}"
-    response = requests.get(url, headers=headers)
+    params = {
+        "filters[tg_id][$eq]": user_id
+    }
+    url = f"http://localhost:1337/api/carts"
+    response = requests.get(url, headers=headers, params=params)
     response.raise_for_status()
     cart = response.json().get("data")
     if not cart:
@@ -167,6 +176,7 @@ def run_bot(bot, redis_db, strapi_api_token):
         fish = get_fish(strapi_api_token, fish_document_id)
         image_url = f"http://localhost:1337{fish.get("picture").get("url")}"
         response = requests.get(image_url)
+        response.raise_for_status()
         image = BytesIO(response.content)
         markup = types.InlineKeyboardMarkup()
         menu_btn = types.InlineKeyboardButton(text="Назад", callback_data="menu")
