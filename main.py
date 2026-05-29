@@ -88,17 +88,17 @@ def run_bot(bot, redis_db, strapi_api_token, host_name):
         redis_db.set(f"cart-{call.from_user.id}", cart_document_id)
         cart_text, cart_fish = strapi_api.get_cart(strapi_api_token, cart_document_id, host_name)
         markup = types.InlineKeyboardMarkup()
-        btn1 = types.InlineKeyboardButton(text="В меню", callback_data="menu")
-        btn2 = types.InlineKeyboardButton(text="Оплатить", callback_data="pay")
-        markup.add(btn1)
-        markup.add(btn2)
+        menu_btn = types.InlineKeyboardButton(text="В меню", callback_data="menu")
+        pay_btn = types.InlineKeyboardButton(text="Оплатить", callback_data="pay")
+        markup.add(menu_btn)
+        markup.add(pay_btn)
         if cart_fish:
             for fish in cart_fish:
-                btn = types.InlineKeyboardButton(
+                rm_btn = types.InlineKeyboardButton(
                     text=f"Удалить {fish.get("title")} из корзины",
                     callback_data=f"rm-{fish.get("documentId")}"
                 )
-                markup.add(btn)
+                markup.add(rm_btn)
         if not cart_text:
             bot.send_message(call.message.chat.id, "Ваша корзина пуста", reply_markup=markup)
         else:
