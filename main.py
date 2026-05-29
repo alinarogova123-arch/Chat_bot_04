@@ -24,6 +24,7 @@ def add_email_to_cart(strapi_api_token, cart_document_id, user_email, user_name)
     }
     url = f"http://localhost:1337/api/carts/{cart_document_id}"
     response = requests.put(url, json=payload, headers=headers)
+    response.raise_for_status()
 
 
 
@@ -65,6 +66,7 @@ def add_fish_to_cart(strapi_api_token, cart_document_id, fish_document_id):
     }
     url = f"http://localhost:1337/api/carts/{cart_document_id}"
     response = requests.put(url, json=payload, headers=headers)
+    response.raise_for_status()
 
 
 def remove_fish_from_cart(strapi_api_token, cart_document_id, fish_document_id):
@@ -81,6 +83,7 @@ def remove_fish_from_cart(strapi_api_token, cart_document_id, fish_document_id):
     }
     url = f"http://localhost:1337/api/carts/{cart_document_id}"
     response = requests.put(url, json=payload, headers=headers)
+    response.raise_for_status()
 
 
 def create_cart(strapi_api_token, user_id):
@@ -95,6 +98,7 @@ def create_cart(strapi_api_token, user_id):
     }
     url = "http://localhost:1337/api/carts"
     response = requests.post(url, json=payload, headers=headers)
+    response.raise_for_status()
     cart_document_id = response.json().get("data").get("documentId")
 
     return cart_document_id
