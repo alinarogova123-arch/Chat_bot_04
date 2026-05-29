@@ -40,16 +40,16 @@ def get_cart(strapi_api_token, cart_document_id):
     }
     response = requests.get(url, headers=headers, params=params)
     response.raise_for_status()
-    cart_fishs = response.json().get("data").get("fish")
-    if not cart_fishs:
+    cart_fish = response.json().get("data").get("fish")
+    if not cart_fish:
         return None, None
     cart_text = []
-    for cart_fish in cart_fishs:
-        fish_title = cart_fish.get("title")
+    for fish in cart_fish:
+        fish_title = fish.get("title")
         cart_text.append(fish_title)
     cart_text = "\n".join(cart_text)
 
-    return cart_text, cart_fishs
+    return cart_text, cart_fish
 
 
 def add_fish_to_cart(strapi_api_token, cart_document_id, fish_document_id):
@@ -125,9 +125,9 @@ def get_fish(strapi_api_token, document_id=None):
         url = "http://localhost:1337/api/fishs"
     response = requests.get(url, headers=headers)
     response.raise_for_status()
-    fishs = response.json().get("data")
+    fish = response.json().get("data")
 
-    return fishs
+    return fish
 
 
 def chek_cart(strapi_api_token, tg_id):
@@ -148,9 +148,9 @@ def run_bot(bot, redis_db, strapi_api_token):
     
     @bot.message_handler(commands=['start'])
     def start_menu(message):
-        fishs = get_fish(strapi_api_token)
+        fish_list = get_fish(strapi_api_token)
         markup = types.InlineKeyboardMarkup()
-        for fish in fishs:
+        for fish in fish_list:
             fish_btn = types.InlineKeyboardButton(
                 text=f"{fish.get("title")}",
                 callback_data=f"id-{fish.get("documentId")}"
@@ -206,14 +206,14 @@ def run_bot(bot, redis_db, strapi_api_token):
         if not cart_document_id:
             cart_document_id = create_cart(strapi_api_token, str(call.from_user.id))
         redis_db.set(f"cart-{call.from_user.id}", cart_document_id)
-        cart_text, cart_fishs = get_cart(strapi_api_token, cart_document_id)
+        cart_text, cart_fish = get_cart(strapi_api_token, cart_document_id)
         markup = types.InlineKeyboardMarkup()
         btn1 = types.InlineKeyboardButton(text="В меню", callback_data="menu")
         btn2 = types.InlineKeyboardButton(text="Оплатить", callback_data="pay")
         markup.add(btn1)
         markup.add(btn2)
-        if cart_fishs:
-            for fish in cart_fishs:
+        if cart_fish:
+            for fish in cart_fish:
                 btn = types.InlineKeyboardButton(
                     text=f"Удалить {fish.get("title")} из корзины",
                     callback_data=f"rm-{fish.get("documentId")}"
