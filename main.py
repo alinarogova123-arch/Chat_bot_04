@@ -11,7 +11,7 @@ from telebot import types
 from telebot.handler_backends import State, StatesGroup
 
 
-def add_email_to_cart(strapi_api_token, cart_document_id, user_email, user_name, host):
+def add_email_to_cart(strapi_api_token, cart_document_id, user_email, user_name, host_name):
     headers = {
         "Authorization": f"bearer {strapi_api_token}",
         "Content-Type": "application/json",
@@ -22,17 +22,17 @@ def add_email_to_cart(strapi_api_token, cart_document_id, user_email, user_name,
             "name": user_name,
         }
     }
-    url = f"{host}/api/carts/{cart_document_id}"
+    url = f"{host_name}/api/carts/{cart_document_id}"
     response = requests.put(url, json=payload, headers=headers)
     response.raise_for_status()
 
 
 
-def get_cart(strapi_api_token, cart_document_id, host):
+def get_cart(strapi_api_token, cart_document_id, host_name):
     headers = {
         "Authorization": f"bearer {strapi_api_token}"
     }
-    url = f"{host}/api/carts/{cart_document_id}"
+    url = f"{host_name}/api/carts/{cart_document_id}"
     params = {
         "populate": {
             "fish": "title"
@@ -52,7 +52,7 @@ def get_cart(strapi_api_token, cart_document_id, host):
     return cart_text, cart_fish
 
 
-def add_fish_to_cart(strapi_api_token, cart_document_id, fish_document_id, host):
+def add_fish_to_cart(strapi_api_token, cart_document_id, fish_document_id, host_name):
     headers = {
         "Authorization": f"bearer {strapi_api_token}",
         "Content-Type": "application/json",
@@ -64,12 +64,12 @@ def add_fish_to_cart(strapi_api_token, cart_document_id, fish_document_id, host)
             },
         }
     }
-    url = f"{host}/api/carts/{cart_document_id}"
+    url = f"{host_name}/api/carts/{cart_document_id}"
     response = requests.put(url, json=payload, headers=headers)
     response.raise_for_status()
 
 
-def remove_fish_from_cart(strapi_api_token, cart_document_id, fish_document_id, host):
+def remove_fish_from_cart(strapi_api_token, cart_document_id, fish_document_id, host_name):
     headers = {
         "Authorization": f"bearer {strapi_api_token}",
         "Content-Type": "application/json",
@@ -81,12 +81,12 @@ def remove_fish_from_cart(strapi_api_token, cart_document_id, fish_document_id, 
             },
         }
     }
-    url = f"{host}/api/carts/{cart_document_id}"
+    url = f"{host_name}/api/carts/{cart_document_id}"
     response = requests.put(url, json=payload, headers=headers)
     response.raise_for_status()
 
 
-def create_cart(strapi_api_token, user_id, host):
+def create_cart(strapi_api_token, user_id, host_name):
     headers = {
         "Authorization": f"bearer {strapi_api_token}",
         "Content-Type": "application/json",
@@ -96,7 +96,7 @@ def create_cart(strapi_api_token, user_id, host):
             "tg_id": user_id,
         }
     }
-    url = f"{host}/api/carts"
+    url = f"{host_name}/api/carts"
     response = requests.post(url, json=payload, headers=headers)
     response.raise_for_status()
     cart_document_id = response.json().get("data").get("documentId")
@@ -106,7 +106,7 @@ def create_cart(strapi_api_token, user_id, host):
 
 def connect_to_redis_db(db_name, db_port, db_password):
     redis_db = redis.Redis(
-        host=db_name,
+        host_name=db_name,
         port=db_port,
         username="default",
         password=db_password,
@@ -115,7 +115,7 @@ def connect_to_redis_db(db_name, db_port, db_password):
     return redis_db
 
 
-def get_fish(strapi_api_token, host, document_id=None):
+def get_fish(strapi_api_token, host_name, document_id=None):
     headers = {
         "Authorization": f"bearer {strapi_api_token}"
     }
@@ -125,10 +125,10 @@ def get_fish(strapi_api_token, host, document_id=None):
         }
     }
     if document_id:
-        url = f"{host}/api/fishs/{document_id}"
+        url = f"{host_name}/api/fishs/{document_id}"
         response = requests.get(url, headers=headers, params=params)
     else:
-        url = f"{host}/api/fishs"
+        url = f"{host_name}/api/fishs"
         response = requests.get(url, headers=headers)
     response.raise_for_status()
     fish = response.json().get("data")
@@ -136,14 +136,14 @@ def get_fish(strapi_api_token, host, document_id=None):
     return fish
 
 
-def chek_cart(strapi_api_token, user_id, host):
+def chek_cart(strapi_api_token, user_id, host_name):
     headers = {
         "Authorization": f"bearer {strapi_api_token}"
     }
     params = {
         "filters[tg_id][$eq]": user_id
     }
-    url = f"{host}/api/carts"
+    url = f"{host_name}/api/carts"
     response = requests.get(url, headers=headers, params=params)
     response.raise_for_status()
     cart = response.json().get("data")
@@ -153,11 +153,11 @@ def chek_cart(strapi_api_token, user_id, host):
     return cart_document_id
 
 
-def run_bot(bot, redis_db, strapi_api_token, host):
+def run_bot(bot, redis_db, strapi_api_token, host_name):
     
     @bot.message_handler(commands=['start'])
     def start_menu(message):
-        fish_list = get_fish(strapi_api_token, host)
+        fish_list = get_fish(strapi_api_token, host_name)
         markup = types.InlineKeyboardMarkup()
         for fish in fish_list:
             fish_btn = types.InlineKeyboardButton(
@@ -173,8 +173,8 @@ def run_bot(bot, redis_db, strapi_api_token, host):
     @bot.callback_query_handler(func=lambda call: "id" in call.data)
     def show_fish(call):
         fish_document_id = call.data.split("-")[1]
-        fish = get_fish(strapi_api_token, host, fish_document_id)
-        image_url = f"{host}{fish.get("picture").get("url")}"
+        fish = get_fish(strapi_api_token, host_name, fish_document_id)
+        image_url = f"{host_name}{fish.get("picture").get("url")}"
         response = requests.get(image_url)
         response.raise_for_status()
         image = BytesIO(response.content)
@@ -204,19 +204,19 @@ def run_bot(bot, redis_db, strapi_api_token, host):
     @bot.callback_query_handler(func=lambda call: "buy" in call.data)
     def fish_to_buy(call):
         fish_document_id = call.data.split("-")[1]
-        cart_document_id = chek_cart(strapi_api_token, str(call.from_user.id), host)
+        cart_document_id = chek_cart(strapi_api_token, str(call.from_user.id), host_name)
         if not cart_document_id:
-            cart_document_id = create_cart(strapi_api_token, str(call.from_user.id), host)
-        add_fish_to_cart(strapi_api_token, cart_document_id, fish_document_id, host)
+            cart_document_id = create_cart(strapi_api_token, str(call.from_user.id), host_name)
+        add_fish_to_cart(strapi_api_token, cart_document_id, fish_document_id, host_name)
 
     
     @bot.callback_query_handler(func=lambda call: call.data == "cart")
     def cart(call):
-        cart_document_id = chek_cart(strapi_api_token, str(call.from_user.id), host)
+        cart_document_id = chek_cart(strapi_api_token, str(call.from_user.id), host_name)
         if not cart_document_id:
-            cart_document_id = create_cart(strapi_api_token, str(call.from_user.id), host)
+            cart_document_id = create_cart(strapi_api_token, str(call.from_user.id), host_name)
         redis_db.set(f"cart-{call.from_user.id}", cart_document_id)
-        cart_text, cart_fish = get_cart(strapi_api_token, cart_document_id, host)
+        cart_text, cart_fish = get_cart(strapi_api_token, cart_document_id, host_name)
         markup = types.InlineKeyboardMarkup()
         btn1 = types.InlineKeyboardButton(text="В меню", callback_data="menu")
         btn2 = types.InlineKeyboardButton(text="Оплатить", callback_data="pay")
@@ -239,7 +239,7 @@ def run_bot(bot, redis_db, strapi_api_token, host):
     def remove_fish(call):
         fish_document_id = call.data.split("-")[1]
         cart_document_id = redis_db.get(f"cart-{call.from_user.id}")
-        remove_fish_from_cart(strapi_api_token, cart_document_id, fish_document_id, host)
+        remove_fish_from_cart(strapi_api_token, cart_document_id, fish_document_id, host_name)
         cart(call)
 
     
@@ -267,7 +267,7 @@ def run_bot(bot, redis_db, strapi_api_token, host):
         user_name = redis_db.get(f"name-{message.from_user.id}")
         user_email = redis_db.get(f"email-{message.from_user.id}")
         cart_document_id = redis_db.get(f"cart-{message.from_user.id}")
-        add_email_to_cart(strapi_api_token, cart_document_id, user_email, user_name, host)
+        add_email_to_cart(strapi_api_token, cart_document_id, user_email, user_name, host_name)
 
 
     bot.add_custom_filter(custom_filters.StateFilter(bot))
@@ -278,14 +278,14 @@ def main():
     env = Env()
     env.read_env()
     strapi_api_token = env.str("STRAPI_API_TOKEN")
-    host = env.str("HOST")
+    host_name = env.str("HOST")
     db_name = env.str("REDIS_DB")
     db_port = env.str("REDIS_DB_PORT")
     db_password = env.str("REDIS_DB_PASSWORD")
     telegram_bot_api_token = env.str("TELEGRAM_BOT_API_KEY")
     redis_db = connect_to_redis_db(db_name, db_port, db_password)
     bot = telebot.TeleBot(telegram_bot_api_token)
-    run_bot(bot, redis_db, strapi_api_token, host)
+    run_bot(bot, redis_db, strapi_api_token, host_name)
 
 
 if __name__ == "__main__":
