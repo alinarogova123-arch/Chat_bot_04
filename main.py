@@ -147,13 +147,13 @@ def run_bot(bot, redis_db, strapi_api_token):
         fishs = get_fish(strapi_api_token)
         markup = types.InlineKeyboardMarkup()
         for fish in fishs:
-            btn = types.InlineKeyboardButton(
+            fish_btn = types.InlineKeyboardButton(
                 text=f"{fish.get("title")}",
                 callback_data=f"id-{fish.get("documentId")}"
             )
-            markup.add(btn)
-        btn1 = types.InlineKeyboardButton(text="Моя корзина", callback_data="cart")
-        markup.add(btn1)
+            markup.add(fish_btn)
+        cart_btn = types.InlineKeyboardButton(text="Моя корзина", callback_data="cart")
+        markup.add(cart_btn)
         bot.send_message(message.chat.id, "Вебери кнопку", reply_markup=markup)
 
     
@@ -165,15 +165,15 @@ def run_bot(bot, redis_db, strapi_api_token):
         response = requests.get(image_url)
         image = BytesIO(response.content)
         markup = types.InlineKeyboardMarkup()
-        btn2 = types.InlineKeyboardButton(text="Назад", callback_data="menu")
-        btn1 = types.InlineKeyboardButton(
+        menu_btn = types.InlineKeyboardButton(text="Назад", callback_data="menu")
+        fish_add_btn = types.InlineKeyboardButton(
             text="Добавить в корзину",
             callback_data=f"buy-{fish_document_id}"
         )
-        btn3 = types.InlineKeyboardButton(text="Моя корзина", callback_data="cart")
-        markup.add(btn1)
-        markup.add(btn2)
-        markup.add(btn3)
+        cart_btn = types.InlineKeyboardButton(text="Моя корзина", callback_data="cart")
+        markup.add(fish_add_btn)
+        markup.add(menu_btn)
+        markup.add(cart_btn)
         bot.send_photo(
             chat_id=call.message.chat.id,
             photo=image,
